@@ -21,7 +21,8 @@ typedef struct SESSION {
 } SESSION;
 
 void init_sessions(SESSION* array){
-    for(int i = 0;i<MAX_SESSIONS;i++){
+    int i = 0;
+    for(i = 0;i<MAX_SESSIONS;i++){
         array[i].ip_pl1 = "null";
         array[i].ip_pl2 = "null";
         array[i].session_code = "23";
@@ -48,8 +49,8 @@ SESSION* get_sessions(){
 int check_if_exis(char* ip){
     SESSION *sessions = get_sessions();
     int found = -1;
-
-    for(int i = 0;i<MAX_SESSIONS;i++){
+    int i = 0;
+    for(i = 0;i<MAX_SESSIONS;i++){
         if(!strcmp(ip,sessions[i].ip_pl1) || !strcmp(ip,sessions[i].ip_pl2)){
             found = i;
             break;
@@ -64,15 +65,20 @@ char* get_first_empty(char* ip){
 
     struct timeval tv;
     gettimeofday(&tv, NULL);
+    int i = 0;
 
-    for(int i = 0;i<MAX_SESSIONS;i++){
+    for(i = 0;i<MAX_SESSIONS;i++){
         if(!strcmp("null",sessions[i].ip_pl1)){
-            sessions[i].ip_pl1 = ip;
+            char *buf = malloc(strlen(ip) *sizeof(char));
+            strcpy(buf,ip);            
+            sessions[i].ip_pl1 = buf;
             if(strcmp("null",sessions[i].ip_pl2)) sessions[i].last_time = tv.tv_sec;
             response = sessions[i].session_code;
             break;
         }
         if(!strcmp("null",sessions[i].ip_pl2)){
+            char *buf = malloc(strlen(ip) *sizeof(char));
+            strcpy(buf,ip);                 
             sessions[i].ip_pl2 = ip;
             if(strcmp("null",sessions[i].ip_pl1)) sessions[i].last_time = tv.tv_sec;
             response = sessions[i].session_code;
