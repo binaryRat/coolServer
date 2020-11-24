@@ -17,12 +17,13 @@ typedef struct SESSION {
        int y_ball;
        int vector_x;
        int vector_y;
+       int pl1_score;
+       int pl2_score;
        long last_time;
 } SESSION;
 
 void init_sessions(SESSION* array){
-    int i = 0;
-    for(i = 0;i<MAX_SESSIONS;i++){
+    for(int i = 0;i<MAX_SESSIONS;i++){
         array[i].ip_pl1 = "null";
         array[i].ip_pl2 = "null";
         array[i].session_code = "23";
@@ -32,6 +33,8 @@ void init_sessions(SESSION* array){
         array[i].y_ball = 50;
         array[i].vector_x = 1;
         array[i].vector_y = 0;
+        array[i].pl1_score = 0;
+        array[i].pl2_score = 0;
         array[i].last_time = 0;
     }
     return;
