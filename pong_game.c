@@ -44,20 +44,20 @@ void init_sessions(SESSION* array){
     return;
 }
 
-void reset_sessions(SESSION* array){
-for(int i = 0;i<MAX_SESSIONS;i++){
-	array[i].pl1_pos = 50;
-	array[i].pl2_pos = 50;
-	array[i].x_ball = 50;
-	array[i].y_ball = 50;
-	array[i].x_ball_tot = array[i].x_ball;
-	array[i].y_ball_tot = array[i].y_ball;
-	array[i].vector_x = 1;
-	array[i].vector_y = 0;
-	array[i].last_time = 0;
-}
-return;
+void reset_sessions(SESSION* session){
 
+	session->pl1_pos = 50;
+	session->pl2_pos = 50;
+	session->x_ball = 50;
+	session->y_ball = 50;
+	session->x_ball_tot =	session->x_ball;
+	session->y_ball_tot = session->y_ball;
+	session->vector_x = 1;
+	session->vector_y = 0;
+	session->last_time = 0;
+
+	return;
+}
 SESSION* get_sessions(){
     static SESSION *sessions = NULL;
     if(sessions == NULL){
@@ -139,45 +139,45 @@ void compute_session_changes(SESSION* session){
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-int deltat = tv.tv_sec - session->last_time;
+	int deltat = tv.tv_sec - session->last_time;
     
-// Y
-session->y_ball_tot = session->y_ball_tot + deltat * session->vector_y;
-if(session->y_ball_tot / 100 % 2 == 0){
-	session->y_ball = session->y_ball_tot % 100;    
-} else {
-	session->y_ball = 100 - session->y_ball_tot % 100;
-}
+	// Y
+	session->y_ball_tot = session->y_ball_tot + deltat * session->vector_y;
+	if(session->y_ball_tot / 100 % 2 == 0){
+		session->y_ball = session->y_ball_tot % 100;    
+	} else {
+		session->y_ball = 100 - session->y_ball_tot % 100;
+	}
 
-// X
-session->x_ball_tot = session->x_ball_tot + deltat * session->vector_x;   
-if(session->x_ball_tot % 100 == 0){ 
-	if(session->x_ball_tot % 200 == 0){
-		if(session->y_ball > session->pl1_pos + 15 || session->y_ball < session->pl1_pos - 15){
-			session->pl2_score++;
-			reset_sessions(session);
+	// X
+	session->x_ball_tot = session->x_ball_tot + deltat * session->vector_x;   
+	if(session->x_ball_tot % 100 == 0){ 
+		if(session->x_ball_tot % 200 == 0){
+			if(session->y_ball > session->pl1_pos + 15 || session->y_ball < session->pl1_pos - 15){
+				session->pl2_score++;
+				reset_sessions(session);
+			} else {
+				//session->x_ball = session->x_ball_tot % 100;   
+				session->x_ball = 1;   		
+			}				
 		} else {
-			//session->x_ball = session->x_ball_tot % 100;   
-			session->x_ball = 1;   		
-		}				
-	} else {
-		if(session->y_ball > session->pl2_pos + 15 || session->y_ball < session->pl2_pos - 15){
-			session->pl1_score++;
-			reset_sessions(session);
-		} else {
-			//session->x_ball = session->x_ball_tot % 100;   
-			session->x_ball = 99;    		
+			if(session->y_ball > session->pl2_pos + 15 || session->y_ball < session->pl2_pos - 15){
+				session->pl1_score++;
+				reset_sessions(session);
+			} else {
+				//session->x_ball = session->x_ball_tot % 100;   
+				session->x_ball = 99;    		
+			}
 		}
-	}
-} else {
-	if(session->x_ball_tot / 100 % 2 == 0){
-		session->x_ball = session->x_ball_tot % 100;    
 	} else {
-		session->x_ball = 100 - session->x_ball_tot % 100;
-	}
-}   
-    printf("Time passed :%d\n",tv.tv_sec - session->last_time);
-    session->last_time = tv.tv_sec;
+		if(session->x_ball_tot / 100 % 2 == 0){
+			session->x_ball = session->x_ball_tot % 100;    
+		} else {
+			session->x_ball = 100 - session->x_ball_tot % 100;
+		}
+	}   
+	printf("Time passed :%d\n",tv.tv_sec - session->last_time);
+	session->last_time = tv.tv_sec;
 }
     
 void change_player_position(SESSION* session,char* client_ip,int add_position){
