@@ -15,6 +15,8 @@ typedef struct SESSION {
        int pl2_pos;
        int x_ball;
        int y_ball;
+       int x_ball_tot;
+       int y_ball_tot;
        int vector_x;
        int vector_y;
        int pl1_score;
@@ -31,6 +33,8 @@ void init_sessions(SESSION* array){
         array[i].pl2_pos = 50;
         array[i].x_ball = 50;
         array[i].y_ball = 50;
+        array[i].x_ball_tot = array[i].x_ball;
+	    array[i].y_ball_tot = array[i].y_ball;
         array[i].vector_x = 1;
         array[i].vector_y = 0;
         array[i].pl1_score = 0;
@@ -39,6 +43,20 @@ void init_sessions(SESSION* array){
     }
     return;
 }
+
+void reset_sessions(SESSION* array){
+for(int i = 0;i<MAX_SESSIONS;i++){
+	array[i].pl1_pos = 50;
+	array[i].pl2_pos = 50;
+	array[i].x_ball = 50;
+	array[i].y_ball = 50;
+	array[i].x_ball_tot = array[i].x_ball;
+	array[i].y_ball_tot = array[i].y_ball;
+	array[i].vector_x = 1;
+	array[i].vector_y = 0;
+	array[i].last_time = 0;
+}
+return;
 
 SESSION* get_sessions(){
     static SESSION *sessions = NULL;
@@ -59,9 +77,9 @@ int check_if_exis(char* ip){
             break;
         }
     }
-
     return found;
 }
+    
 char* get_first_empty(char* ip){
     SESSION *sessions = get_sessions();
     char *response = "FULL";
@@ -87,6 +105,7 @@ char* get_first_empty(char* ip){
     return response;
 
 }
+    
 char* compose_session_response(char* session_code){
     char *prefix = "{\"sid\":\"";
     char *suffix = "\"}";
@@ -96,6 +115,7 @@ char* compose_session_response(char* session_code){
     strcat(response,suffix);
     return response;
 }
+    
 BUF* get_session_response(char* client_ip){
 
     int index = check_if_exis(client_ip);
@@ -112,38 +132,54 @@ BUF* get_session_response(char* client_ip){
     result->length = strlen(result->buffer);
 
     return result;
+    
 }
 void compute_session_changes(SESSION* session){
     if(!strcmp("null",session->ip_pl1) || !strcmp("null",session->ip_pl2)) return;
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    int x_app = session->x_ball;
-    int y_app = session->y_ball;
-    int deltat = tv.tv_sec - session->last_time; // è in secondi o millisecondi?
-       
-    y_app = y_app + deltat * session->vector_y;
-    if(y_app / 100 % 2 == 0){
-        session->y_ball = y_app % 100;    
-    } else {
-        session->y_ball = 100 - y_app % 100;
-    }
-    x_app = x_app + deltat * session->vector_x;   
-    if(x_app % 100 == 0){ 
-        // Controllo collisione con le barre
-    } else {
-        if(x_app / 100 % 2 == 0){
-            session->x_ball = x_app % 100;    
-        } else {
-            session->x_ball = 100 - x_app % 100;
-        }
-    }   
-       
-    printf("Time passed :%d\n",tv.tv_sec - session->last_time);
-
-    session->last_time = tv.tv_sec;
-
+int deltat = tv.tv_sec - session->last_time;
+    
+// Y
+session->y_ball_tot = session->y_ball_tot + deltat * session->vector_y;
+if(session->y_ball_tot / 100 % 2 == 0){
+	session->y_ball = session->y_ball_tot % 100;    
+} else {
+	session->y_ball = 100 - session->y_ball_tot % 100;
 }
+
+// X
+session->x_ball_tot = session->x_ball_tot + deltat * session->vector_x;   
+if(session->x_ball_tot % 100 == 0){ 
+	if(session->x_ball_tot % 200 == 0){
+		if(session->y_ball > session->pl1_pos + 15 || session->y_ball < session->pl1_pos - 15){
+			session->pl2_score++;
+			reset_sessions(session);
+		} else {
+			//session->x_ball = session->x_ball_tot % 100;   
+			session->x_ball = 1;   		
+		}				
+	} else {
+		if(session->y_ball > session->pl2_pos + 15 || session->y_ball < session->pl2_pos - 15){
+			session->pl1_score++;
+			reset_sessions(session);
+		} else {
+			//session->x_ball = session->x_ball_tot % 100;   
+			session->x_ball = 99;    		
+		}
+	}
+} else {
+	if(session->x_ball_tot / 100 % 2 == 0){
+		session->x_ball = session->x_ball_tot % 100;    
+	} else {
+		session->x_ball = 100 - session->x_ball_tot % 100;
+	}
+}   
+    printf("Time passed :%d\n",tv.tv_sec - session->last_time);
+    session->last_time = tv.tv_sec;
+}
+    
 void change_player_position(SESSION* session,char* client_ip,int add_position){
     int *position = NULL;
 
@@ -163,6 +199,7 @@ void change_player_position(SESSION* session,char* client_ip,int add_position){
     }
     *position = *position + add_position;
 }
+    
 char* compose_position_response(SESSION session){
     char *prefix = "{\"p1\":";
     char *string_1 = ",\"p2\":";
@@ -197,6 +234,7 @@ char* compose_position_response(SESSION session){
     
     return response;
 }
+    
 BUF* get_upd_session_data(char* client_ip,char* args){
     int index = check_if_exis(client_ip);
     SESSION *sessions = get_sessions();
@@ -210,5 +248,4 @@ BUF* get_upd_session_data(char* client_ip,char* args){
     result->buffer = compose_position_response(sessions[index]);
     result->length = strlen(result->buffer);
     return result;
-
 }
