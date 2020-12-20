@@ -5,6 +5,8 @@
 #include "handler.h"
 
 int main( int argc, char *argv[]) {
+       
+       demonize();
 
        int port = atoi(argv[1]);
 
