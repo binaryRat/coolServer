@@ -131,7 +131,7 @@ BUF* get_session_response(char* client_ip){
     }else{
         code = get_first_empty(client_ip);
     }
-    printf("Found %d\n",index,code);
+    printf("Found %d %s\n",index,code);
     BUF *result = malloc(sizeof(BUF));
     result->buffer = compose_session_response(code);
     result->length = strlen(result->buffer);
@@ -181,7 +181,7 @@ void compute_session_changes(SESSION* session){
 			session->x_ball = 100 - session->x_ball_tot % 100;
 		}
 	}   
-	printf("Time passed :%d\n",tv.tv_sec - session->last_time);
+	printf("Time passed :%f\n",tv.tv_sec - session->last_time);
 	session->last_time = tv.tv_sec;
 }
     

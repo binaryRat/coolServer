@@ -1,1 +1,0 @@
-/usr/bin/cc   -rdynamic CMakeFiles/coolServer.dir/main.c.o CMakeFiles/coolServer.dir/server.c.o CMakeFiles/coolServer.dir/handler.c.o CMakeFiles/coolServer.dir/utils.c.o CMakeFiles/coolServer.dir/pong_game.c.o  -o coolServer 
